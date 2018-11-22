@@ -30,6 +30,7 @@ function unpackAndProcess(events) {
       outputEvents.push(logic.handler(event));
     }
   });
+  return outputEvents;
 }
 
 module.exports.sendEvents = send;
