@@ -5,6 +5,7 @@ const logic = require('.');
 const client = new AWS.Kinesis({ region: process.env.REGION });
 
 if (logic.setup) logic.setup();
+if (logic.unpackAndProcess) ks.unpackAndProcess = logic.unpackAndProcess;
 
 exports.handler = function handler(ksEvents, context, callback) {
   try {
