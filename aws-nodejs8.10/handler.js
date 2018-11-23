@@ -6,13 +6,14 @@ const client = new AWS.Kinesis({ region: process.env.REGION });
 
 if (logic.unpackAndProcess) ks.unpackAndProcess = logic.unpackAndProcess;
 
-exports.handler = function handler(ksEvents, context, callback) {
+exports.handler = async function handler(ksEvents, context, callback) {
   try {
     if (ksEvents && ksEvents.Records) {
       const outputEvents = ks.unpackAndProcess(ksEvents.Records);
 
       if (outputEvents.length > 0) {
-        ks.send(client, outputEvents);
+        const out = await ks.send(client, outputEvents);
+        callback(null, out);
       }
     }
   } catch (e) {

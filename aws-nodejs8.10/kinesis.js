@@ -1,12 +1,12 @@
 const logic = require('.');
 
-async function send(client, events) {
+function send(client, events) {
   return new Promise((resolve, reject) => {
     // parameters for our Kinesis stream
     const params = {
       StreamName: process.env.STREAM_NAME,
       Records: events.map(event => ({
-        Data: Buffer.from(JSON.stringify(event)).toString('base64'),
+        Data: JSON.stringify(event),
         PartitionKey: process.env.PARTITION_KEY,
       })),
     };
@@ -33,5 +33,5 @@ function unpackAndProcess(events) {
   return outputEvents;
 }
 
-module.exports.sendEvents = send;
+module.exports.send = send;
 module.exports.unpackAndProcess = unpackAndProcess;
