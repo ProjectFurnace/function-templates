@@ -1,12 +1,22 @@
-const logic = require(".");
+const AWS = require('aws-sdk');
+const ks = require('./kinesis');
+const logic = require('.');
 
-if (logic.setup) logic.setup();
+const client = new AWS.Kinesis({ region: process.env.REGION });
 
-exports.handler = function(event, context, callback) {   
-    try {
-        callback(null, logic.handler(event));
+if (logic.unpackAndProcess) ks.unpackAndProcess = logic.unpackAndProcess;
+
+exports.handler = async function handler(ksEvents, context, callback) {
+  try {
+    if (ksEvents && ksEvents.Records) {
+      const outputEvents = ks.unpackAndProcess(ksEvents.Records);
+
+      if (outputEvents.length > 0) {
+        const out = await ks.send(client, outputEvents);
+        callback(null, out);
+      }
     }
-    catch (e) {
-        callback(e)
-    }
-}
+  } catch (e) {
+    callback(e);
+  }
+};
