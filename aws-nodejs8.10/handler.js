@@ -9,7 +9,7 @@ if (logic.unpackAndProcess) ks.unpackAndProcess = logic.unpackAndProcess;
 exports.handler = async function handler(ksEvents, context, callback) {
   try {
     if (ksEvents && ksEvents.Records) {
-      const outputEvents = ks.unpackAndProcess(ksEvents.Records);
+      const outputEvents = await ks.unpackAndProcess(ksEvents.Records);
 
       if (process.env.STREAM_NAME && outputEvents.length > 0) {
         const out = await ks.send(client, outputEvents);
