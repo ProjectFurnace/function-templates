@@ -28,6 +28,9 @@ function unpackAndProcess(events) {
     if (elem.kinesis && elem.kinesis.data) {
       const event = JSON.parse(Buffer.from(elem.kinesis.data, 'base64'));
       outputEvents.push(logic.handler(event));
+    } else if (process.env.DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log('No "kinesis" or "data" properties in events received');
     }
   });
   return outputEvents;
