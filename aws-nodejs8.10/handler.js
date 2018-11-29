@@ -11,7 +11,7 @@ exports.handler = async function handler(ksEvents, context, callback) {
     if (ksEvents && ksEvents.Records) {
       const outputEvents = ks.unpackAndProcess(ksEvents.Records);
 
-      if (outputEvents.length > 0) {
+      if (process.env.STREAM_NAME && outputEvents.length > 0) {
         const out = await ks.send(client, outputEvents);
         callback(null, out);
       }
