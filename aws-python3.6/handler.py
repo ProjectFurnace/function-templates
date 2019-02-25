@@ -12,6 +12,7 @@ STREAM_NAME = ""
 AWS_REGION = os.environ["AWS_REGION"]
 
 
+
 try:
     STREAM_NAME = os.environ["STREAM_NAME"]
 except:
@@ -23,47 +24,44 @@ async def process_event(record):
     processed_result = await furnace.processEvent(record)
     return processed_result
 
-
 def process_awslogs(event):
     data = event['awslogs']['data']
     compressed_payload = base64.b64decode(data)
-
     if compressed_payload[0:2] == b'\x1f\x8b':
         uncompressed_payload = gzip.decompress(compressed_payload)
         payload = json.loads(uncompressed_payload)
     else:
         payload = json.loads(compressed_payload)
-
+  
     log_events = payload['logEvents']
     return log_events
-
 
 def process_kinesis(event):
     records = event['Records']
     events = []
-
+    
     for record in records:
         kinesis_event = record['kinesis']
         data = kinesis_event['data']
         payload = base64.b64decode(data)
         events.append(json.loads(payload))
-
+    
     return events
-
+        
 
 def passtrough(event):
     return event
 
-
 def handler(event, context):
-
+    
     if 'awslogs' in event:
         processed_events = process_awslogs(event)
     elif 'Records' in event:
         processed_events = process_kinesis(event)
     else:
         processed_events = passtrough(event)
-
+    
+    
     processed_records = []
     futures = [process_event(record) for record in processed_events]
     loop = asyncio.new_event_loop()
@@ -84,5 +82,4 @@ def handler(event, context):
         print(put_response)
 
     return 'Successfully processed {} records.'.format(len(processed_events))
-
 
