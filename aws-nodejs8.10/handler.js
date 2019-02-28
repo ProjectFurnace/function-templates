@@ -2,6 +2,8 @@ const AWS = require('aws-sdk');
 const ks = require('./kinesis');
 const logic = require('.');
 
+if (logic.setup) logic.setup();
+
 const client = new AWS.Kinesis({ region: process.env.REGION });
 
 if (logic.unpackAndProcess) ks.unpackAndProcess = logic.unpackAndProcess;
