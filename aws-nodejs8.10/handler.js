@@ -25,6 +25,10 @@ exports.handler = async function handler(ksEvents, context, callback) {
       console.log('No property "Records" in Kinesis received data');
     }
   } catch (e) {
+    if (process.env.DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log('An exception ocurred', e);
+    }
     callback(e);
   }
 };

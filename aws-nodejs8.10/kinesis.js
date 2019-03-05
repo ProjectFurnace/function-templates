@@ -11,11 +11,24 @@ function putRecords(client, records) {
       })),
     };
 
+    if (process.env.DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log(`Sending following data to ${process.env.STREAM_NAME}`, params.Records);
+    }
+
     client.putRecords(params, (err) => {
       if (err) {
         // error
+        if (process.env.DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log('An error ocurred when doing putRecords', err);
+        }
         reject(new Error(err));
       } else {
+        if (process.env.DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log(`Pushed ${records.length} events to Kinesis`);
+        }
         resolve(`Pushed ${records.length} events to Kinesis`);
       }
     });
@@ -42,6 +55,8 @@ async function unpackAndProcess(events) {
   for (let ii = 0; ii < events.length; ii += 1) {
     if (events[ii].kinesis && events[ii].kinesis.data) {
       const event = JSON.parse(Buffer.from(events[ii].kinesis.data, 'base64'));
+      // we are using a for loop that allows for async
+      // eslint-disable-next-line no-await-in-loop
       outputEvents.push(await logic.handler(event));
     } else if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
