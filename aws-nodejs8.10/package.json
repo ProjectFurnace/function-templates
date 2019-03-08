@@ -1,0 +1,9 @@
+{
+  "name": "@project-furnace/aws-nodejs8.10-template",
+  "version": "0.1.6",
+  "main": "handler.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "aws-param-store": "^2.1.0"
+  }
+}
