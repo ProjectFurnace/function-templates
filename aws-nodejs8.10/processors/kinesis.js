@@ -1,6 +1,9 @@
-const logic = require('.');
+const AWS = require('aws-sdk');
+const logic = require('../index');
 
-function putRecords(client, records) {
+const client = new AWS.Kinesis({ region: process.env.REGION });
+
+function putRecords(records) {
   return new Promise((resolve, reject) => {
     // parameters for our Kinesis stream
     const params = {
@@ -35,7 +38,7 @@ function putRecords(client, records) {
   });
 }
 
-function send(client, events) {
+function send(events) {
   if (events.length > 500) {
     const promises = [];
     const slices = Math.ceil(events.length / 500);
@@ -43,14 +46,14 @@ function send(client, events) {
     for (let ii = 0; ii < slices; ii += 1) {
       const chunk = events.slice(ii * 500, (ii + 1) * 500);
 
-      promises.push(putRecords(client, chunk));
+      promises.push(putRecords(chunk));
     }
     return Promise.all(promises);
   }
-  return putRecords(client, events);
+  return putRecords(events);
 }
 
-async function unpackAndProcess(events) {
+async function receive(events) {
   const outputEvents = [];
   for (let ii = 0; ii < events.length; ii += 1) {
     if (events[ii].kinesis && events[ii].kinesis.data) {
@@ -67,4 +70,4 @@ async function unpackAndProcess(events) {
 }
 
 module.exports.send = send;
-module.exports.unpackAndProcess = unpackAndProcess;
+module.exports.receive = receive;
