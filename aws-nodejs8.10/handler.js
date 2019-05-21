@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const ks = require('./kinesis');
-const logic = require('.');
+const logic = require('./index');
 
 if (logic.setup) logic.setup();
 

@@ -1,4 +1,4 @@
-const logic = require('.');
+const logic = require('./index');
 
 function putRecords(client, records) {
   return new Promise((resolve, reject) => {
@@ -57,7 +57,8 @@ async function unpackAndProcess(events) {
       const event = JSON.parse(Buffer.from(events[ii].kinesis.data, 'base64'));
       // we are using a for loop that allows for async
       // eslint-disable-next-line no-await-in-loop
-      outputEvents.push(await logic.handler(event));
+      const processedEvent = await logic.handler(event);
+      if (processedEvent != null) outputEvents.push(processedEvent);
     } else if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
       console.log('No "kinesis" or "data" properties in events received');
