@@ -1,6 +1,6 @@
 const logic = require('./index');
 
-module.exports = async function run(context, eventInput) {
+module.exports.processEvent = async function processEvent(context, eventInput) {
   if (process.env.DEBUG) {
     context.log('EventHub trigger processed an event', eventInput);
   }
