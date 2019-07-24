@@ -1,8 +1,14 @@
 const furnaceSDK = require('@project-furnace/sdk');
 const handlerUtils = require('./handlerUtils');
-const logic = require('./index');
 
-if (logic.setup) logic.setup();
+let logic;
+
+if (!process.env.COMBINE) {
+  // eslint-disable-next-line global-require
+  logic = require('./index');
+
+  if (logic.setup) logic.setup();
+}
 
 const processorFactory = require('./processorFactory');
 
@@ -11,7 +17,7 @@ let processor = null;
 exports.handler = async (payload, context, callback) => {
   if (!processor) {
     processor = processorFactory.createInstance(payload);
-    if (logic.receive) processor.receive = logic.receive;
+    if (!process.env.COMBINE && logic.receive) processor.receive = logic.receive;
   }
   try {
     const out = furnaceSDK.fp.pipe(

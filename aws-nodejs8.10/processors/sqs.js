@@ -1,6 +1,28 @@
 const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
-const logic = require('../index');
+const path = require('path');
+const furnaceSDK = require('@project-furnace/sdk');
+
+const funcArray = [];
+let logic;
+
+if (process.env.COMBINE) {
+  // eslint-disable-next-line global-require
+  const funcs = require('require-all')({
+    dirname: path.join(__dirname, '..', 'combined'),
+    filter: /(index)\.js$/,
+  });
+
+  const funcOrder = process.env.COMBINE.split(',');
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const func of funcOrder) {
+    funcArray.push(funcs[func].index.handler);
+  }
+} else {
+  // eslint-disable-next-line global-require
+  logic = require('../index');
+}
 
 const client = new AWS.SQS({ region: process.env.REGION });
 
@@ -61,7 +83,17 @@ async function receive(events) {
       const event = JSON.parse(Buffer.from(events[ii].body, 'base64'));
       // we are using a for loop that allows for async
       // eslint-disable-next-line no-await-in-loop
-      outputEvents.push(await logic.handler(event));
+      if (!process.env.COMBINE) {
+        // we are using a for loop that allows for async
+        // eslint-disable-next-line no-await-in-loop
+        outputEvents.push(await logic.handler(event));
+      } else {
+        // eslint-disable-next-line no-await-in-loop
+        const out = await furnaceSDK.fp.pipe(
+          ...funcArray,
+        )(event);
+        outputEvents.push(out);
+      }
     } else if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
       console.log('No "body" property in received events');

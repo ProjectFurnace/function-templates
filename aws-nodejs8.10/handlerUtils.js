@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const awsParamStore = require('aws-param-store');
+const path = require('path');
 
 function validatePayload(payload) {
   if (payload && payload.Records) {
@@ -22,6 +23,21 @@ if (inputParameters) {
     const envVarName = 'INPUT_'.concat(param.Name.substr(param.Name.lastIndexOf('/') + 1).replace(/\./g, '_').toUpperCase());
     process.env[envVarName] = param.Value;
   });
+}
+
+if (process.env.COMBINE) {
+  // eslint-disable-next-line global-require
+  const funcs = require('require-all')({
+    dirname: path.join(__dirname, 'combined'),
+    filter: /(index)\.js$/,
+  });
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const folder of Object.values(funcs)) {
+    if (folder.index.setup) {
+      folder.index.setup();
+    }
+  }
 }
 
 module.exports.validatePayload = validatePayload;

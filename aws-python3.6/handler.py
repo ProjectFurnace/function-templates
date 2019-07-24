@@ -1,27 +1,27 @@
 from __future__ import print_function
 import boto3
 import gzip
-import furnace
 import base64
 import json
 import os
+import pkgutil
 import asyncio
+from importlib import import_module
 
+def dynamic_import(abs_module_path, class_name):
+    module_object = import_module(abs_module_path)
+    target_class = getattr(module_object, class_name)
+    return target_class
 
-STREAM_NAME = ""
-AWS_REGION = os.environ["AWS_REGION"]
+async def process_event(record, context):
+    if len(lambda_array) > 1:
+        new_event = record
+        for fnc in lambda_array:
+            new_event = await fnc['function'](new_event, context)
+        processed_result = new_event
+    else:
+        processed_result = await furnace.processEvent(record, context)
 
-
-
-try:
-    STREAM_NAME = os.environ["STREAM_NAME"]
-except:
-    pass
-
-
-async def process_event(record):
-    print(record)
-    processed_result = await furnace.processEvent(record)
     return processed_result
 
 def process_awslogs(event):
@@ -63,7 +63,7 @@ def handler(event, context):
     
     
     processed_records = []
-    futures = [process_event(record) for record in processed_events]
+    futures = [process_event(record, context) for record in processed_events]
     loop = asyncio.new_event_loop()
     done, _ = loop.run_until_complete(asyncio.wait(futures))
     loop.stop()
@@ -71,15 +71,21 @@ def handler(event, context):
     loop.close()
 
     for fut in done:
-        record = {'Data': json.dumps(fut.result()),'PartitionKey': os.environ["PARTITION_KEY"]}
+        record = {'Data': json.dumps(fut.result()),'PartitionKey': os.environ['PARTITION_KEY']}
         processed_records.append(record)
 
-    if len(processed_records) > 0 and STREAM_NAME:
-        print(AWS_REGION)
-        print(STREAM_NAME)
-        kinesis_client = boto3.client('kinesis', region_name=AWS_REGION)
-        put_response = kinesis_client.put_records(Records=processed_records, StreamName=STREAM_NAME)
-        print(put_response)
+    if len(processed_records) > 0 and 'STREAM_NAME' in os.environ:
+        kinesis_client = boto3.client('kinesis', region_name=os.environ['AWS_REGION'])
+        put_response = kinesis_client.put_records(Records=processed_records, StreamName=os.environ['STREAM_NAME'])
 
     return 'Successfully processed {} records.'.format(len(processed_events))
 
+lambda_array = []
+
+if 'COMBINED' in os.environ:
+    BASE_PATH = os.path.dirname(__file__) + '/combined/'
+
+    for (a, name, c) in pkgutil.iter_modules([BASE_PATH]):
+        lambda_array.append({'name': name, 'function': dynamic_import('combined.' + name + '.furnace', 'lambda_handler')})
+else:
+    import furnace
