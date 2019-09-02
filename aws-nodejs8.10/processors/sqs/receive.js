@@ -26,7 +26,7 @@ async function receive(events) {
   const outputEvents = [];
   for (let ii = 0; ii < events.length; ii += 1) {
     if (events[ii] && events[ii].body) {
-      const event = JSON.parse(Buffer.from(events[ii].body, 'base64'));
+      const event = JSON.parse(events[ii].body);
       // we are using a for loop that allows for async
       // eslint-disable-next-line no-await-in-loop
       if (!process.env.COMBINE) {

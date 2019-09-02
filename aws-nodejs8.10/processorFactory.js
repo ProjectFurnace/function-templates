@@ -1,7 +1,7 @@
-const kinesisReceiver = require('./processors/kinesis/receive');
-const kinesisSender = require('./processors/kinesis/send');
-const sqsReceiver = require('./processors/sqs/receive');
-const sqsSender = require('./processors/sqs/send');
+const kinesisReceiver = require('./processors/kinesis/receive').receive;
+const kinesisSender = require('./processors/kinesis/send').send;
+const sqsReceiver = require('./processors/sqs/receive').receive;
+const sqsSender = require('./processors/sqs/send').send;
 
 module.exports.createInstance = (payload, output) => {
   if (!payload.Records || !payload.Records.length > 0) throw new Error('unable to detect payload type');

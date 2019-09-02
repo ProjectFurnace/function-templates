@@ -2,15 +2,16 @@ const AWS = require('aws-sdk');
 const uuidv4 = require('uuid/v4');
 
 const client = new AWS.SQS({ region: process.env.REGION });
+let queueUrl;
 
 function putRecords(records) {
   return new Promise((resolve, reject) => {
     // parameters for our Kinesis stream
     const params = {
-      QueueUrl: process.env.STREAM_NAME,
+      QueueUrl: queueUrl,
       Entries: records.map(event => ({
         Id: uuidv4(),
-        MessageBody: Buffer.from(JSON.stringify(event)).toString('base64'),
+        MessageBody: JSON.stringify(event),
       })),
     };
 
@@ -38,7 +39,11 @@ function putRecords(records) {
   });
 }
 
-function send(events) {
+async function send(events) {
+  if (!queueUrl) {
+    queueUrl = (await client.getQueueUrl({ QueueName: process.env.STREAM_NAME }).promise()).QueueUrl;
+  }
+
   if (events.length > 100) {
     const promises = [];
     const slices = Math.ceil(events.length / 100);

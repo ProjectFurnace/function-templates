@@ -25,7 +25,7 @@ exports.handler = async (payload, context, callback) => {
     }
   }
   try {
-    const out = furnaceSDK.fp.pipe(
+    const out = await furnaceSDK.fp.pipe(
       handlerUtils.validatePayload,
       receiver,
       handlerUtils.validateEvents,
