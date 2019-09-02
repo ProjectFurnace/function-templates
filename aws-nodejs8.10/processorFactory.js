@@ -16,9 +16,9 @@ module.exports.createInstance = (payload, output) => {
   if (firstRecord.eventSource) {
     switch (firstRecord.eventSource) {
       case 'aws:kinesis':
-        return [kinesisReceiver, (outputType === 'sqs' ? sqsSender : kinesisSender)];
+        return [kinesisReceiver, (outputType === 'aws.sqs.queue' ? sqsSender : kinesisSender)];
       case 'aws:sqs':
-        return [sqsReceiver, (outputType === 'kinesis' ? kinesisSender : sqsSender)];
+        return [sqsReceiver, (outputType === 'aws.kinesis.stream' ? kinesisSender : sqsSender)];
       default:
         throw new Error(`unable to get processor for eventSource ${firstRecord.eventName}`);
     }
