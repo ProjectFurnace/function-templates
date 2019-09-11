@@ -34,7 +34,9 @@ if (process.env.COMBINE) {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const folder of Object.values(funcs)) {
-    if (folder.index.setup) {
+    if (folder.aws && folder.aws.index.setup) {
+      folder.aws.index.setup();
+    } else if (folder.index.setup) {
       folder.index.setup();
     }
   }

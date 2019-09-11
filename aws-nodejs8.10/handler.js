@@ -1,4 +1,5 @@
 const furnaceSDK = require('@project-furnace/sdk');
+const fs = require('fs');
 const handlerUtils = require('./handlerUtils');
 
 let logic;
@@ -6,8 +7,13 @@ let logic;
 // if this is not a combined function, require the index of the function
 // and check if there is a setup method
 if (!process.env.COMBINE) {
+  let logicPath = './index';
+  if (fs.existsSync('./aws/')) {
+    logicPath = './aws/index';
+  }
+
   // eslint-disable-next-line global-require
-  logic = require('./index');
+  logic = require(logicPath);
 
   if (logic.setup) logic.setup();
 }
