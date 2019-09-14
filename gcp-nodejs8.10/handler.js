@@ -1,5 +1,6 @@
 // Imports the Google Cloud client library
 const { PubSub } = require('@google-cloud/pubsub');
+const fs = require('fs');
 const path = require('path');
 const furnaceSDK = require('@project-furnace/sdk');
 
@@ -17,11 +18,20 @@ if (process.env.COMBINE) {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const func of funcOrder) {
-    funcArray.push(funcs[func].index.handler);
+    if (funcs[func].gcp) {
+      funcArray.push(funcs[func].gcp.index.handler);
+    } else {
+      funcArray.push(funcs[func].index.handler);
+    }
   }
 } else {
+  let logicPath = './index';
+  if (fs.existsSync('./gcp/')) {
+    logicPath = './gcp/index';
+  }
+
   // eslint-disable-next-line global-require
-  logic = require('./index');
+  logic = require(logicPath);
 }
 
 const pubsub = new PubSub();

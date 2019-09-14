@@ -3,7 +3,6 @@ import base64
 import os
 import pkgutil
 import json
-import furnace
 import asyncio
 from importlib import import_module
 
@@ -56,6 +55,12 @@ if 'COMBINED' in os.environ:
     BASE_PATH = os.path.dirname(__file__) + '/combined/'
 
     for (a, name, c) in pkgutil.iter_modules([BASE_PATH]):
-        lambda_array.append({'name': name, 'function': dynamic_import('combined.' + name + '.furnace', 'lambda_handler')})
+        if os.path.isdir(BASE_PATH + '/' + name + '/gcp'):
+            lambda_array.append({'name': name, 'function': dynamic_import('combined.' + name + '.gcp.furnace', 'lambda_handler')})
+        else:
+            lambda_array.append({'name': name, 'function': dynamic_import('combined.' + name + '.furnace', 'lambda_handler')})
 else:
-    import furnace
+    if os.path.isdir(os.path.dirname(__file__) + '/gcp'):
+        import gcp.furnace as furnace
+    else:
+        import furnace

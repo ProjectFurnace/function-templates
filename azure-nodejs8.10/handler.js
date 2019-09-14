@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const furnaceSDK = require('@project-furnace/sdk');
 
@@ -15,11 +16,20 @@ if (process.env.COMBINE) {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const func of funcOrder) {
-    funcArray.push(funcs[func].index.handler);
+    if (funcs[func].azure) {
+      funcArray.push(funcs[func].azure.index.handler);
+    } else {
+      funcArray.push(funcs[func].index.handler);
+    }
   }
 } else {
+  let logicPath = './index';
+  if (fs.existsSync('./azure/')) {
+    logicPath = './azure/index';
+  }
+
   // eslint-disable-next-line global-require
-  logic = require('./index');
+  logic = require(logicPath);
 }
 
 module.exports.processEvent = async function processEvent(context, eventInput) {
