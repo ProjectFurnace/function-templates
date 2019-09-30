@@ -5,6 +5,8 @@ const path = require('path');
 function validatePayload(payload) {
   if (payload && payload.Records) {
     return payload.Records;
+  } else if (payload.source && payload.source === 'aws.events') {
+    return payload;
   }
   throw new Error('No property "Records" in received event');
 }
