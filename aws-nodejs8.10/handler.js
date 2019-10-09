@@ -1,29 +1,43 @@
-const AWS = require('aws-sdk');
-const ks = require('./kinesis');
-const logic = require('./index');
+const furnaceSDK = require('@project-furnace/sdk');
+const fs = require('fs');
+const handlerUtils = require('./handlerUtils');
 
-if (logic.setup) logic.setup();
+let logic;
 
-const client = new AWS.Kinesis({ region: process.env.REGION });
+// if this is not a combined function, require the index of the function
+// and check if there is a setup method
+if (!process.env.COMBINE) {
+  let logicPath = './index';
+  if (fs.existsSync('./aws/')) {
+    logicPath = './aws/index';
+  }
 
-if (logic.unpackAndProcess) ks.unpackAndProcess = logic.unpackAndProcess;
+  // eslint-disable-next-line global-require
+  logic = require(logicPath);
 
-exports.handler = async function handler(ksEvents, context, callback) {
-  try {
-    if (ksEvents && ksEvents.Records) {
-      const outputEvents = await ks.unpackAndProcess(ksEvents.Records);
+  if (logic.setup) logic.setup();
+}
 
-      if (process.env.STREAM_NAME && outputEvents.length > 0) {
-        const out = await ks.send(client, outputEvents);
-        callback(null, out);
-      } else if (process.env.DEBUG) {
-        // eslint-disable-next-line no-console
-        console.log('No output stream defined or no events to output');
-      }
-    } else if (process.env.DEBUG) {
-      // eslint-disable-next-line no-console
-      console.log('No property "Records" in Kinesis received data');
+const processorFactory = require('./processorFactory');
+
+let receiver = null;
+let sender = null;
+
+exports.handler = async (payload, context, callback) => {
+  if (!receiver) {
+    [receiver, sender] = processorFactory.createInstance(payload, process.env.OUTPUT_TYPE);
+    if (!process.env.COMBINE && logic.receive) {
+      receiver = logic.receive;
     }
+  }
+  try {
+    const out = await furnaceSDK.fp.pipe(
+      handlerUtils.validatePayload,
+      receiver,
+      handlerUtils.validateEvents,
+      sender,
+    )(payload);
+    callback(null, out);
   } catch (e) {
     if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
