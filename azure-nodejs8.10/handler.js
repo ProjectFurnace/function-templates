@@ -52,3 +52,4 @@ module.exports.processEvent = async function processEvent(context, eventInput) {
 
   context.done(null, output);
 };
+
