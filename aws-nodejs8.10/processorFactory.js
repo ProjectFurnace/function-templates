@@ -25,7 +25,7 @@ module.exports.createInstance = (payload, output) => {
       case 'aws:s3':
         return [s3Receiver, (outputType === 'aws.sqs.queue' ? sqsSender : kinesisSender)];
       default:
-        throw new Error(`unable to get processor for eventSource ${firstRecord.eventName}`);
+        throw new Error(`unable to get processor for eventSource ${firstRecord.eventSource}`);
     }
   // cloudwatch scheduled events have a completely different event format...
   } else if (payload.source === 'aws.events') {
