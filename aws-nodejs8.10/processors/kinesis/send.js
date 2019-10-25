@@ -49,28 +49,7 @@ function send(events) {
     }
     return Promise.all(promises);
   }
-<<<<<<< HEAD:aws-nodejs8.10/processors/kinesis/send.js
-  return putRecords(events);
-=======
   return putRecords(client, events);
-}
-
-async function unpackAndProcess(events) {
-  const outputEvents = [];
-  for (let ii = 0; ii < events.length; ii += 1) {
-    if (events[ii].kinesis && events[ii].kinesis.data) {
-      const event = JSON.parse(Buffer.from(events[ii].kinesis.data, 'base64'));
-      // we are using a for loop that allows for async
-      // eslint-disable-next-line no-await-in-loop
-      const processedEvent = await logic.handler(event);
-      if (processedEvent != null) outputEvents.push(processedEvent);
-    } else if (process.env.DEBUG) {
-      // eslint-disable-next-line no-console
-      console.log('No "kinesis" or "data" properties in events received');
-    }
-  }
-  return outputEvents;
->>>>>>> master:aws-nodejs8.10/kinesis.js
 }
 
 module.exports.send = send;
