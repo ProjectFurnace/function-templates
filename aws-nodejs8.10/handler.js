@@ -37,7 +37,16 @@ exports.handler = async (payload, context, callback) => {
       handlerUtils.validateEvents,
       sender,
     )(payload);
-    callback(null, out);
+    // we may want different outputs depending on the source (API GW requires a certain structure as response)
+    if (process.env.CALLBACK_OUTPUT === 'events') {
+      if (out.events.length === 1) {
+        callback(null, out.events[0]);
+      } else {
+        callback(null, out.events);
+      }
+    } else {
+      callback(null, out.msg);
+    }
   } catch (e) {
     if (process.env.DEBUG) {
       // eslint-disable-next-line no-console

@@ -4,11 +4,13 @@ const sqsReceiver = require('./processors/sqs/receive').receive;
 const sqsSender = require('./processors/sqs/send').send;
 const s3Receiver = require('./processors/s3/receive').receive;
 const cloudwatchReceiver = require('./processors/cloudwatch/receive').receive;
+const apigatewayReceiver = require('./processors/apigateway/receive').receive;
 
 module.exports.createInstance = (payload, output) => {
-  if (!payload.Records || !payload.Records.length > 0) throw new Error('unable to detect payload type');
+  if (!payload.Records && (!payload.requestContext && !payload.headers)) throw new Error('unable to detect payload type');
+  if (payload.Records && payload.Records.length < 1) throw new Error('no records in payload');
 
-  const firstRecord = payload.Records[0];
+  const firstRecord = payload.Records ? payload.Records[0] : {};
 
   let outputType;
   if (output) {
@@ -30,6 +32,9 @@ module.exports.createInstance = (payload, output) => {
   // cloudwatch scheduled events have a completely different event format...
   } else if (payload.source === 'aws.events') {
     return [cloudwatchReceiver, (outputType === 'aws.sqs.queue' ? sqsSender : kinesisSender)];
+  // api gateway is yet another different scenario...
+  } else if (payload.requestContext && payload.headers) {
+    return [apigatewayReceiver, (outputType === 'aws.sqs.queue' ? sqsSender : kinesisSender)];
   } else {
     throw new Error('eventSource not available in payload records or payload source not supported');
   }

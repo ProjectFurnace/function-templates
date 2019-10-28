@@ -31,7 +31,7 @@ function putRecords(records) {
           // eslint-disable-next-line no-console
           console.log(`Pushed ${records.length} events to Kinesis`);
         }
-        resolve(`Pushed ${records.length} events to Kinesis`);
+        resolve({ msg: `Pushed ${records.length} events to Kinesis`, events: records });
       }
     });
   });
@@ -49,7 +49,7 @@ function send(events) {
     }
     return Promise.all(promises);
   }
-  return putRecords(client, events);
+  return putRecords(events);
 }
 
 module.exports.send = send;
