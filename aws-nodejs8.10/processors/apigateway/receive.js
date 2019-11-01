@@ -7,7 +7,7 @@ const type = 'API_GATEWAY';
 
 async function receive(event) {
   const outputEvents = [];
-  if (event && event.body) {
+  if (event) {
     if (!process.env.COMBINE) {
       outputEvents.push(await logic.handler(event));
     } else {
