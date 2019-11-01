@@ -1,3 +1,4 @@
+const furnaceSDK = require('@project-furnace/sdk');
 const fs = require('fs');
 const path = require('path');
 
@@ -31,5 +32,27 @@ if (process.env.COMBINE) {
   logic = require(logicPath);
 }
 
-exports.funcArray = funcArray;
-exports.logic = logic;
+async function processEvent(event) {
+  let out;
+  if (!process.env.COMBINE) {
+    if (event.event && event.meta) {
+      out = await logic.handler(event.event, event.meta);
+    } else {
+      out = await logic.handler(event);
+    }
+  } else {
+    // eslint-disable-next-line no-lonely-if
+    if (event.event && event.meta) {
+      out = await furnaceSDK.fp.pipe(
+        ...funcArray,
+      )(event.event, event.meta);
+    } else {
+      out = await furnaceSDK.fp.pipe(
+        ...funcArray,
+      )(event);
+    }
+  }
+  return out;
+}
+
+exports.processEvent = processEvent;

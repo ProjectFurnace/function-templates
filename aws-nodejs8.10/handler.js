@@ -37,13 +37,12 @@ exports.handler = async (payload, context, callback) => {
       handlerUtils.validateEvents,
       sender,
     )(payload);
-    // we may want different outputs depending on the source (API GW requires a certain structure as response)
-    if (process.env.CALLBACK_OUTPUT === 'events') {
-      if (out.events.length === 1) {
-        callback(null, out.events[0]);
-      } else {
-        callback(null, out.events);
+    //if we have a meta response on the first event, use that as the callback output (useful for API GW for example)
+    if (out.events && Array.isArray(out.events) && out.events[0].meta && out.events[0].meta.response) {
+      if (process.env.DEBUG) {
+        console.log('meta.response present with value: ', out.events[0].meta.response);
       }
+      callback(null, out.events[0].meta.response);
     } else {
       callback(null, out.msg);
     }
