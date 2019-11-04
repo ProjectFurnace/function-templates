@@ -22,10 +22,11 @@ const processorFactory = require('./processorFactory');
 
 let receiver = null;
 let sender = null;
+let processorCallback = null;
 
 exports.handler = async (payload, context, callback) => {
   if (!receiver) {
-    [receiver, sender] = processorFactory.createInstance(payload, process.env.OUTPUT_TYPE);
+    [receiver, sender, processorCallback] = processorFactory.createInstance(payload, process.env.OUTPUT_TYPE);
     if (!process.env.COMBINE && logic.receive) {
       receiver = logic.receive;
     }
@@ -37,15 +38,7 @@ exports.handler = async (payload, context, callback) => {
       handlerUtils.validateEvents,
       sender,
     )(payload);
-    //if we have a meta response on the first event, use that as the callback output (useful for API GW for example)
-    if (out.events && Array.isArray(out.events) && out.events[0].meta && out.events[0].meta.response) {
-      if (process.env.DEBUG) {
-        console.log('meta.response present with value: ', out.events[0].meta.response);
-      }
-      callback(null, out.events[0].meta.response);
-    } else {
-      callback(null, out.msg);
-    }
+    processorCallback.doCallback(callback, out);
   } catch (e) {
     if (process.env.DEBUG) {
       // eslint-disable-next-line no-console

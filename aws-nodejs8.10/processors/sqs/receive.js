@@ -6,7 +6,7 @@ async function receive(events) {
     if (events[ii] && events[ii].body) {
       const event = JSON.parse(events[ii].body);
       // eslint-disable-next-line no-await-in-loop
-      outputEvents.push(await processorInitialise.processEvent(event));
+      outputEvents.push(...(await processorInitialise.processEvent(event)));
     } else if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
       console.log('No "body" property in received events');
