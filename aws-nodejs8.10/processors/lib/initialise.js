@@ -52,6 +52,10 @@ async function processEvent(event) {
       )(event);
     }
   }
+  // we want to always return an array
+  if (!Array.isArray(out)) {
+    return [out];
+  }
   return out;
 }
 
