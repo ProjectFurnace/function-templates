@@ -22,23 +22,27 @@ const processorFactory = require('./processorFactory');
 
 let receiver = null;
 let sender = null;
-let processorCallback = null;
 
 exports.handler = async (payload, context, callback) => {
   if (!receiver) {
-    [receiver, sender, processorCallback] = processorFactory.createInstance(payload, process.env.OUTPUT_TYPE);
+    [receiver, sender] = processorFactory.createInstance(payload, process.env.OUTPUT_TYPE);
     if (!process.env.COMBINE && logic.receive) {
       receiver = logic.receive;
     }
   }
   try {
-    const out = await furnaceSDK.fp.pipe(
+    const logicResponse = await furnaceSDK.fp.pipe(
       handlerUtils.validatePayload,
       receiver,
+    )(payload);
+
+    const senderResponse = await furnaceSDK.fp.pipe(
       handlerUtils.validateEvents,
       sender,
-    )(payload);
-    processorCallback.doCallback(callback, out);
+    )(logicResponse.events);
+
+    const callbackMsg = (logicResponse.response ? logicResponse.response : senderResponse);
+    callback(null, callbackMsg);
   } catch (e) {
     if (process.env.DEBUG) {
       // eslint-disable-next-line no-console

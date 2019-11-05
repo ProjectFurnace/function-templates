@@ -35,28 +35,40 @@ if (process.env.COMBINE) {
 async function processEvent(event) {
   let out;
   if (!process.env.COMBINE) {
-    if (event.event && event.meta) {
-      out = await logic.handler(event.event, event.meta);
+    if (event.data && event.meta) {
+      out = await logic.handler(event.data, event.meta);
     } else {
       out = await logic.handler(event);
     }
   } else {
     // eslint-disable-next-line no-lonely-if
-    if (event.event && event.meta) {
+    if (event.data && event.meta) {
       out = await furnaceSDK.fp.pipe(
         ...funcArray,
-      )(event.event, event.meta);
+      )(event.data, event.meta);
     } else {
       out = await furnaceSDK.fp.pipe(
         ...funcArray,
       )(event);
     }
   }
-  // we want to always return an array
-  if (!Array.isArray(out)) {
-    return [out];
+  // standarize response to {response: x, events: [{...data...},{...data...},{...data...}....]}
+  // if we only have an array of events coming from the handler 
+  if (Array.isArray(out)) {
+    return { events: out };
   }
-  return out;
+
+  // if we have an object with the events key defined
+  if (out.events) {
+    // if events is not an array
+    if (!Array.isArray(out.events)) {
+      out.events = [out.events];
+    }
+    return out;
+  }
+
+  // if it's just a single event
+  return { events: [out] };
 }
 
 exports.processEvent = processEvent;

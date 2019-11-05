@@ -33,7 +33,7 @@ function putRecords(records) {
           // eslint-disable-next-line no-console
           console.log(`Pushed ${records.length} events to SQS`);
         }
-        resolve({ msg: `Pushed ${records.length} events to SQS`, events: records });
+        resolve(`Pushed ${records.length} events to SQS`);
       }
     });
   });
