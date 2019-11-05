@@ -44,12 +44,12 @@ async function send(events) {
     queueUrl = (await client.getQueueUrl({ QueueName: process.env.STREAM_NAME }).promise()).QueueUrl;
   }
 
-  if (events.length > 100) {
+  if (events.length > 10) {
     const promises = [];
-    const slices = Math.ceil(events.length / 100);
+    const slices = Math.ceil(events.length / 10);
 
     for (let ii = 0; ii < slices; ii += 1) {
-      const chunk = events.slice(ii * 100, (ii + 1) * 100);
+      const chunk = events.slice(ii * 10, (ii + 1) * 10);
 
       promises.push(putRecords(chunk));
     }
