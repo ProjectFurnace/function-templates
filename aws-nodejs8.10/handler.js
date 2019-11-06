@@ -36,10 +36,13 @@ exports.handler = async (payload, context, callback) => {
       receiver,
     )(payload);
 
-    const senderResponse = await furnaceSDK.fp.pipe(
-      handlerUtils.validateEvents,
-      sender,
-    )(logicResponse.events);
+    let senderResponse = 'No response or events to output';
+    if (logicResponse.events && logicResponse.events.length > 0) {
+      senderResponse = await furnaceSDK.fp.pipe(
+        handlerUtils.validateEvents,
+        sender,
+      )(logicResponse.events);
+    }
 
     const callbackMsg = (logicResponse.response ? logicResponse.response : senderResponse);
     callback(null, callbackMsg);
