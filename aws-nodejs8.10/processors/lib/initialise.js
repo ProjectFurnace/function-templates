@@ -53,6 +53,14 @@ async function processEvent(event) {
     }
   }
   // standarize response to {response: x, events: [{...data...},{...data...},{...data...}....]}
+  // if no output at all return an empty object
+  if (!out) {
+    if (process.env.DEBUG) {
+      console.log('No output from handler function');
+    }
+    return { events: {} };
+  }
+
   // if we only have an array of events coming from the handler 
   if (Array.isArray(out)) {
     return { events: out };

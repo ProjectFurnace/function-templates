@@ -12,10 +12,10 @@ function validatePayload(payload) {
 }
 
 function validateEvents(events) {
-  if (process.env.STREAM_NAME && events.length > 0) {
-    return events;
+  if (!process.env.STREAM_NAME) {
+    throw new Error('There are events to output but there is no output stream defined');
   }
-  throw new Error('No output stream defined or no events to output');
+  return events;
 }
 
 // process any input parameters we may have and dump them into ENV vars
