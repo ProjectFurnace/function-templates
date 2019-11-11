@@ -75,6 +75,10 @@ async function processEvent(event) {
     return out;
   }
 
+  // if it's only response but no event
+  if (out.response) {
+    return out;
+  }
   // if it's just a single event
   return { events: [out] };
 }
