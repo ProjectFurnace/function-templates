@@ -52,7 +52,13 @@ async function processEvent(event) {
       )(event);
     }
   }
-  // standarize response to {response: x, events: [{...data...},{...data...},{...data...}....]}
+  /** standarize response to {response: x, events: [{...data...},{...data...},{...data...}....]}
+   * there are 4 cases to consider (plus the ones with meta in which the event itself is {data: ..., meta: ...}):
+   * 1. just an event, no meta, no response: {…data…}
+   * 2. multiple events, no meta, no response: [{...data...},{...data...},{...data...}....]
+   * 3. single event, response, no meta: {response: x, event: {...data...}}
+   * 4. multiple events, response, no meta: {response: x, events: [{...data...},{...data...},{...data...}....]}
+   */
   // if no output at all return an empty object
   if (!out) {
     if (process.env.DEBUG) {
@@ -66,19 +72,18 @@ async function processEvent(event) {
     return { events: out };
   }
 
-  // if we have an object with the events key defined
-  if (out.events) {
-    // if events is not an array
-    if (!Array.isArray(out.events)) {
-      out.events = [out.events];
-    }
+  // if we have a single event in the output
+  if (out.event) {
+    out.events = [out.event];
+    delete out.event;
     return out;
   }
 
-  // if it's only response but no event
-  if (out.response) {
+  // if we have an object with an events property being an array or a response property
+  if ((out.events && Array.isArray(out.events)) || out.response) {
     return out;
   }
+
   // if it's just a single event
   return { events: [out] };
 }
