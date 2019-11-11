@@ -7,7 +7,7 @@ const cloudwatchReceiver = require('./processors/cloudwatch/receive').receive;
 const apigatewayReceiver = require('./processors/apigateway/receive').receive;
 
 module.exports.createInstance = (payload, output) => {
-  if (!payload.Records && (!payload.requestContext && !payload.headers)) throw new Error('unable to detect payload type');
+  // throw an error if our Records property is available but empty (only kinesis/sqs/s3 have a Records key)
   if (payload.Records && payload.Records.length < 1) throw new Error('no records in payload');
 
   const firstRecord = payload.Records ? payload.Records[0] : {};
