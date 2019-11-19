@@ -64,7 +64,7 @@ async function processEvent(event) {
     if (process.env.DEBUG) {
       console.log('No output from handler function');
     }
-    return { events: {} };
+    return { events: [] };
   }
 
   // if we only have an array of events coming from the handler 
@@ -81,6 +81,9 @@ async function processEvent(event) {
 
   // if we have an object with an events property being an array or a response property
   if ((out.events && Array.isArray(out.events)) || out.response) {
+    if (out.events === [{}]) {
+      out.events = [];
+    }
     return out;
   }
 
