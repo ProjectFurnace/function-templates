@@ -74,7 +74,7 @@ async function processEvent(event) {
 
   // if we have a single event in the output
   if (out.event) {
-    out.events = [out.event];
+    out.events = out.event === {} ? [] : [out.event];
     delete out.event;
     return out;
   }
