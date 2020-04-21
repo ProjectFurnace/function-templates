@@ -1,6 +1,6 @@
 const initialise = require("../processors/lib/initialise");
 
-describe("processEvent", () => {
+describe.skip("processEvent", () => {
   it("should work", async () => {
     process.env.LOGIC_PATH = __dirname + "/fixtures/testfunction/index";
 

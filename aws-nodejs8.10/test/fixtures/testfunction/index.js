@@ -1,5 +1,5 @@
 module.exports.handler = async (event) => {
-  console.log("hello", event);
+  console.log("got event", event);
 
   return event;
 };

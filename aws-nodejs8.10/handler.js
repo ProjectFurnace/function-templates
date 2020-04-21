@@ -4,23 +4,16 @@ const handlerUtils = require("./handlerUtils");
 
 let logic;
 
-// if this is not a combined function, require the index of the function
-// and check if there is a setup method
-if (!process.env.COMBINE) {
-  let logicPath = "./index";
-
-  // eslint-disable-next-line global-require
-  logic = require(logicPath);
-
-  if (logic.setup) logic.setup();
-}
-
 const processorFactory = require("./processorFactory");
 
 let receiver = null;
 let sender = null;
 
-exports.handler = async (payload, context, callback) => {
+let setupComplete = false;
+
+exports.handler = async (payload, context) => {
+  if (!setupComplete) setup();
+
   if (!receiver) {
     [receiver, sender] = processorFactory.createInstance(
       payload,
@@ -37,6 +30,7 @@ exports.handler = async (payload, context, callback) => {
     )(payload, context);
 
     let senderResponse = "No response or events to output";
+
     if (logicResponse.events && logicResponse.events.length > 0) {
       senderResponse = await furnaceSDK.fp.pipe(
         handlerUtils.validateEvents,
@@ -44,15 +38,29 @@ exports.handler = async (payload, context, callback) => {
       )(logicResponse.events);
     }
 
-    const callbackMsg = logicResponse.response
+    const responseMessage = logicResponse.response
       ? logicResponse.response
       : senderResponse;
-    callback(null, callbackMsg);
+
+    return responseMessage;
   } catch (e) {
     if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
       console.log("An exception ocurred", e);
     }
-    callback(e);
+    throw e;
   }
 };
+
+function setup() {
+  // if this is not a combined function, require the index of the function
+  // and check if there is a setup method
+  if (!process.env.COMBINE) {
+    let logicPath = process.env.LOGIC_PATH || "./index";
+
+    // eslint-disable-next-line global-require
+    logic = require(logicPath);
+
+    if (logic.setup) logic.setup();
+  }
+}
