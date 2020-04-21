@@ -1,55 +1,37 @@
-const furnaceSDK = require('@project-furnace/sdk');
-const fs = require('fs');
-const path = require('path');
+const furnaceSDK = require("@project-furnace/sdk");
+const { lookup } = require("@project-furnace/sdk-aws");
+
+const path = require("path");
 
 const funcArray = [];
 let logic;
 
-if (process.env.COMBINE) {
-  // eslint-disable-next-line global-require
-  const funcs = require('require-all')({
-    dirname: path.join(__dirname, '../..', 'combined'),
-    filter: /(index)\.js$/,
-  });
+let setupComplete = false;
 
-  const funcOrder = process.env.COMBINE.split(',');
+module.exports.processEvent = async (payload, context) => {
+  if (!setupComplete) setup();
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const func of funcOrder) {
-    if (funcs[func].aws) {
-      funcArray.push(funcs[func].aws.index.handler);
-    } else {
-      funcArray.push(funcs[func].index.handler);
-    }
-  }
-} else {
-  let logicPath = '../../index';
-  if (fs.existsSync('../../aws/')) {
-    logicPath = '../../aws/index';
-  }
-
-  // eslint-disable-next-line global-require
-  logic = require(logicPath);
-}
-
-async function processEvent(event) {
   let out;
   if (!process.env.COMBINE) {
-    if (event.data && event.meta) {
-      out = await logic.handler(event.data, event.meta);
+    if (payload.data && payload.meta) {
+      out = await logic.handler(payload.data, payload.meta, getUtils(context));
     } else {
-      out = await logic.handler(event);
+      out = await logic.handler(payload, {}, getUtils(context));
     }
   } else {
     // eslint-disable-next-line no-lonely-if
-    if (event.data && event.meta) {
-      out = await furnaceSDK.fp.pipe(
-        ...funcArray,
-      )(event.data, event.meta);
+    if (payload.data && payload.meta) {
+      out = await furnaceSDK.fp.pipe(...funcArray)(
+        payload.data,
+        payload.meta,
+        getUtils(context)
+      );
     } else {
-      out = await furnaceSDK.fp.pipe(
-        ...funcArray,
-      )(event);
+      out = await furnaceSDK.fp.pipe(...funcArray)(
+        payload,
+        {},
+        getUtils(context)
+      );
     }
   }
   /** standarize response to {response: x, events: [{...data...},{...data...},{...data...}....]}
@@ -62,12 +44,12 @@ async function processEvent(event) {
   // if no output at all return an empty object
   if (!out) {
     if (process.env.DEBUG) {
-      console.log('No output from handler function');
+      console.log("No output from handler function");
     }
     return { events: [] };
   }
 
-  // if we only have an array of events coming from the handler 
+  // if we only have an array of events coming from the handler
   if (Array.isArray(out)) {
     return { events: out };
   }
@@ -89,6 +71,32 @@ async function processEvent(event) {
 
   // if it's just a single event
   return { events: [out] };
+};
+
+function getUtils(context) {
+  return { context, lookup };
 }
 
-exports.processEvent = processEvent;
+function setup() {
+  if (process.env.COMBINE) {
+    // eslint-disable-next-line global-require
+    const funcs = require("require-all")({
+      dirname: path.join(__dirname, "../..", "combined"),
+      filter: /(index)\.js$/,
+    });
+
+    const funcOrder = process.env.COMBINE.split(",");
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const func of funcOrder) {
+      funcArray.push(funcs[func].index.handler);
+    }
+  } else {
+    let logicPath = process.env.LOGIC_PATH || "../../index";
+
+    // eslint-disable-next-line global-require
+    logic = require(logicPath);
+  }
+
+  setupComplete = true;
+}
