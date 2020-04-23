@@ -2,14 +2,14 @@ const AWS = require("aws-sdk");
 const awsParamStore = require("aws-param-store");
 const path = require("path");
 
-function validatePayload(payload) {
+function validatePayload([payload, context]) {
   if (payload && payload.Records) {
-    return payload.Records;
+    return [payload.Records, context];
   } else if (
     (payload.source && payload.source === "aws.events") ||
     (payload.requestContext && payload.headers)
   ) {
-    return payload;
+    return [payload, context];
   }
 
   throw new Error('No property "Records" in received event');

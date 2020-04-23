@@ -12,6 +12,8 @@ let sender = null;
 let setupComplete = false;
 
 exports.handler = async (payload, context) => {
+  if (process.env.DEBUG) console.log("received payload", payload);
+
   if (!setupComplete) setup();
 
   if (!receiver) {
@@ -24,10 +26,10 @@ exports.handler = async (payload, context) => {
     }
   }
   try {
-    const logicResponse = await furnaceSDK.fp.pipe(
+    const [logicResponse] = await furnaceSDK.fp.pipe(
       handlerUtils.validatePayload,
       receiver
-    )(payload, context);
+    )([payload, context]);
 
     let senderResponse = "No response or events to output";
 
@@ -42,6 +44,8 @@ exports.handler = async (payload, context) => {
       ? logicResponse.response
       : senderResponse;
 
+    if (process.env.DEBUG) console.log("sending response", responseMessage);
+
     return responseMessage;
   } catch (e) {
     if (process.env.DEBUG) {
@@ -55,6 +59,8 @@ exports.handler = async (payload, context) => {
 function setup() {
   // if this is not a combined function, require the index of the function
   // and check if there is a setup method
+  if (process.env.DEBUG) console.log("running function setup");
+
   if (!process.env.COMBINE) {
     let logicPath = process.env.LOGIC_PATH || "./index";
 

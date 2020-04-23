@@ -1,6 +1,6 @@
 const processorInitialise = require("../lib/initialise");
 
-async function receive(events, context) {
+async function receive([events, context]) {
   const output = { events: [] };
   for (let ii = 0; ii < events.length; ii += 1) {
     if (events[ii] && events[ii].body) {
@@ -19,7 +19,7 @@ async function receive(events, context) {
       console.log('No "body" property in received events');
     }
   }
-  return output;
+  return [output, context];
 }
 
 module.exports.receive = receive;
