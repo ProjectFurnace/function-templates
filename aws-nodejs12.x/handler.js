@@ -33,7 +33,11 @@ exports.handler = async (payload, context) => {
 
     let senderResponse = "No response or events to output";
 
-    if (logicResponse.events && logicResponse.events.length > 0) {
+    if (
+      process.env.FURNACE_CONSTRUCT !== "sink" &&
+      logicResponse.events &&
+      logicResponse.events.length > 0
+    ) {
       senderResponse = await furnaceSDK.fp.pipe(
         handlerUtils.validateEvents,
         sender
