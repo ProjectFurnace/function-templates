@@ -34,7 +34,7 @@ exports.handler = async (payload, context) => {
     let senderResponse = "No response or events to output";
 
     if (
-      process.env.FURNACE_CONSTRUCT !== "sink" &&
+      !["sink", "function"].includes(process.env.FURNACE_CONSTRUCT) &&
       logicResponse.events &&
       logicResponse.events.length > 0
     ) {
