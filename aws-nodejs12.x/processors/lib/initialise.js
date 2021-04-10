@@ -1,5 +1,5 @@
 const furnaceSDK = require("@project-furnace/sdk");
-const { lookup } = require("@project-furnace/sdk-aws");
+const sdkAws = require("@project-furnace/sdk-aws");
 
 const path = require("path");
 
@@ -74,7 +74,7 @@ module.exports.processEvent = async (payload, context) => {
 };
 
 function getUtils(context) {
-  return { context, lookup };
+  return { context, ...sdkAws };
 }
 
 function setup() {

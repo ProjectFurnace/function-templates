@@ -5,14 +5,14 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@project-furnace/sdk": "^0.1.1",
-    "@project-furnace/sdk-aws": "^0.1.5",
-    "aws-param-store": "^2.1.0",
+    "@project-furnace/sdk-aws": "^0.2.1",
+    "aws-param-store": "^3.2.0",
     "require-all": "^3.0.0",
-    "uuid": "^3.4.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "aws-sdk": "^2.660.0",
-    "jest": "^25.4.0"
+    "aws-sdk": "^2.884.0",
+    "jest": "^26.6.3"
   },
   "scripts": {
     "test": "AWS_REGION=eu-west-1 jest"
