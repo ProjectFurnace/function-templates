@@ -1,8 +1,9 @@
 const furnaceSDK = require("@project-furnace/sdk");
-const sdkAws = require("@project-furnace/sdk-aws");
+const { lookup, queue } = require("@project-furnace/sdk-aws");
 
 const path = require("path");
 
+let funcList;
 const funcArray = [];
 let logic;
 
@@ -19,19 +20,26 @@ module.exports.processEvent = async (payload, context) => {
       out = await logic.handler(payload, {}, getUtils(context));
     }
   } else {
-    // eslint-disable-next-line no-lonely-if
+    let event, meta;
     if (payload.data && payload.meta) {
-      out = await furnaceSDK.fp.pipe(...funcArray)(
-        payload.data,
-        payload.meta,
-        getUtils(context)
-      );
+      event = payload.data;
+      meta = payload.meta;
     } else {
-      out = await furnaceSDK.fp.pipe(...funcArray)(
-        payload,
-        {},
-        getUtils(context)
-      );
+      event = payload;
+      meta = {};
+    }
+    for (let func of funcArray) {
+      try {
+        out = await func(event, meta, getUtils(context));
+      } catch (error) {
+        const newError = new Error(
+          `error executing function ${funcList[funcArray.indexOf(func)]}`
+        );
+        newError.original = error;
+        newError.stack = error.stack;
+
+        throw newError;
+      }
     }
   }
   /** standarize response to {response: x, events: [{...data...},{...data...},{...data...}....]}
@@ -74,7 +82,7 @@ module.exports.processEvent = async (payload, context) => {
 };
 
 function getUtils(context) {
-  return { context, ...sdkAws };
+  return { context, lookup, queue };
 }
 
 function setup() {
@@ -85,10 +93,10 @@ function setup() {
       filter: /(index)\.js$/,
     });
 
-    const funcOrder = process.env.COMBINE.split(",");
+    funcList = process.env.COMBINE.split(",");
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const func of funcOrder) {
+    for (const func of funcList) {
       funcArray.push(funcs[func].index.handler);
     }
   } else {

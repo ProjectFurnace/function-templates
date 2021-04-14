@@ -1,5 +1,5 @@
-const AWS = require('aws-sdk');
-const uuidv4 = require('uuid/v4');
+const AWS = require("aws-sdk");
+const uuid = require("uuid");
 
 const client = new AWS.SQS({ region: process.env.REGION });
 let queueUrl;
@@ -9,15 +9,18 @@ function putRecords(records) {
     // parameters for our Kinesis stream
     const params = {
       QueueUrl: queueUrl,
-      Entries: records.map(event => ({
-        Id: uuidv4(),
+      Entries: records.map((event) => ({
+        Id: uuid.v4(),
         MessageBody: JSON.stringify(event),
       })),
     };
 
     if (process.env.DEBUG) {
       // eslint-disable-next-line no-console
-      console.log(`Sending following data to ${process.env.STREAM_NAME}`, params.Entries);
+      console.log(
+        `Sending following data to ${process.env.STREAM_NAME}`,
+        params.Entries
+      );
     }
 
     client.sendMessageBatch(params, (err) => {
@@ -25,7 +28,7 @@ function putRecords(records) {
         // error
         if (process.env.DEBUG) {
           // eslint-disable-next-line no-console
-          console.log('An error ocurred when doing sendMessageBatch', err);
+          console.log("An error ocurred when doing sendMessageBatch", err);
         }
         reject(new Error(err));
       } else {
@@ -41,7 +44,9 @@ function putRecords(records) {
 
 async function send(events) {
   if (!queueUrl) {
-    queueUrl = (await client.getQueueUrl({ QueueName: process.env.STREAM_NAME }).promise()).QueueUrl;
+    queueUrl = (
+      await client.getQueueUrl({ QueueName: process.env.STREAM_NAME }).promise()
+    ).QueueUrl;
   }
 
   if (events.length > 10) {
