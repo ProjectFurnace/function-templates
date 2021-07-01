@@ -28,9 +28,12 @@ module.exports.processEvent = async (payload, context) => {
       event = payload;
       meta = {};
     }
+
+    out = event;
+
     for (let func of funcArray) {
       try {
-        out = await func(event, meta, getUtils(context));
+        out = await func(out, meta, getUtils(context));
       } catch (error) {
         const newError = new Error(
           `error executing function ${funcList[funcArray.indexOf(func)]}`
