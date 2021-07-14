@@ -34,6 +34,8 @@ module.exports.processEvent = async (payload, context) => {
     for (let func of funcArray) {
       try {
         out = await func(out, meta, getUtils(context));
+
+        if (!out) break; // we have no output stop processing pipeline
       } catch (error) {
         const newError = new Error(
           `error executing function ${funcList[funcArray.indexOf(func)]}`
