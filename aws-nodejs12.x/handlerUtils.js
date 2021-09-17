@@ -1,5 +1,5 @@
 const AWS = require("aws-sdk");
-const awsParamStore = require("aws-param-store");
+// const awsParamStore = require("aws-param-store");
 const path = require("path");
 
 function validatePayload([payload, context]) {
@@ -25,19 +25,19 @@ function validateEvents(events) {
 }
 
 // process any input parameters we may have and dump them into ENV vars
-const inputParameters = awsParamStore.getParametersByPathSync(
-  `/${process.env.FURNACE_INSTANCE}/${process.env.AWS_LAMBDA_FUNCTION_NAME}/`
-);
-if (inputParameters) {
-  inputParameters.forEach((param) => {
-    const envVarName = "INPUT_".concat(
-      param.Name.substr(param.Name.lastIndexOf("/") + 1)
-        .replace(/\./g, "_")
-        .toUpperCase()
-    );
-    process.env[envVarName] = param.Value;
-  });
-}
+// const inputParameters = awsParamStore.getParametersByPathSync(
+//   `/${process.env.FURNACE_INSTANCE}/${process.env.AWS_LAMBDA_FUNCTION_NAME}/`
+// );
+// if (inputParameters) {
+//   inputParameters.forEach((param) => {
+//     const envVarName = "INPUT_".concat(
+//       param.Name.substr(param.Name.lastIndexOf("/") + 1)
+//         .replace(/\./g, "_")
+//         .toUpperCase()
+//     );
+//     process.env[envVarName] = param.Value;
+//   });
+// }
 
 if (process.env.COMBINE) {
   // eslint-disable-next-line global-require
