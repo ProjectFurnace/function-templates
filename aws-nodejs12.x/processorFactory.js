@@ -57,12 +57,13 @@ module.exports.createInstance = (payload, output) => {
       outputType === "aws.sqs.queue" ? sqsSender : kinesisSender,
     ];
   } else {
-    if (process.env.NODE_ENV === "test") return [noopReceiver, noopSender];
+    // if (process.env.NODE_ENV === "test") return [noopReceiver, noopSender];
 
-    console.log("failing", payload, output);
+    // console.log("failing", payload, output);
 
-    throw new Error(
-      "eventSource not available in payload records or payload source not supported"
-    );
+    // throw new Error(
+    //   "eventSource not available in payload records or payload source not supported"
+    // );
+    return [noopReceiver, noopSender];
   }
 };

@@ -12,7 +12,10 @@ let sender = null;
 let setupComplete = false;
 
 exports.handler = async (payload, context) => {
-  if (process.env.DEBUG) console.log("received payload", payload);
+  if (process.env.DEBUG) {
+    console.log("received payload", payload);
+    console.log("environment", process.env);
+  }
 
   if (!setupComplete) setup();
 
