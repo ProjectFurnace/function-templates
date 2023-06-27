@@ -1,0 +1,20 @@
+{
+  "name": "@project-furnace/aws-nodejs8.10-template",
+  "version": "0.1.6",
+  "main": "handler.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@project-furnace/sdk": "^0.1.1",
+    "@project-furnace/sdk-aws": "^0.2.5",
+    "aws-param-store": "^3.2.0",
+    "require-all": "^3.0.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.884.0",
+    "jest": "^26.6.3"
+  },
+  "scripts": {
+    "test": "AWS_REGION=eu-west-1 jest"
+  }
+}
